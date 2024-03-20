@@ -44,55 +44,58 @@ if ~first_run
     hanwin_fringe = dispersion_comp_fringe.*repmat(hann(size(dispersion_comp_fringe, 1)), [1 size(dispersion_comp_fringe,2)]);
 end
 
-first_loop = exist('OCT','var'); % set to false if we have OCT matrix generated 
-if ~first_loop
-    % going along each frame
-    disp("initial processing, no tilt corr")
-
-    for FrameNum = 1:numBscans
-        RawOCT = RawOCT_A(:,:,FrameNum);
-        
-        rescaled = reSampling_LUT(RawOCT, LUT_A);
-        dc_sub = rescaled - (repmat(median(real(rescaled),2), [1,size(rescaled,2)]) ...
-        +1j.*repmat(median(imag(rescaled),2), [1,size(rescaled,2)]));
-        
-        % no need to estimate, just apply
-        dis_comp = compDisPhase(dc_sub, dispMaxOrder, dispCoeffs);
-        
-        han_win = dis_comp.*repmat(hann(size(dis_comp, 1)), [1 size(dis_comp,2)]);
-    
-        FFTData = fft(han_win);
-    
-        OCT(:,:,FrameNum) = flipud(FFTData(depthROI(1):depthROI(2),:));
-    end
-end
-
-% % Save .mat file %
-% save(fullfile(loadloc,['OCT']), 'OCT', '-v7.3');
+% first_loop = exist('OCT','var'); % set to false if we have OCT matrix generated 
+% if ~first_loop
+%     % going along each frame
+%     disp("initial processing, no tilt corr")
 % 
-% % Save .tiff stack %
-% for i = 1:size(OCT,3)
-%     img = imadjust(mat2gray(20.*log10(abs(OCT(:,:,i)))));
-%     imwrite(img, 'OCT.tiff', 'WriteMode', 'append', 'Compression','none');
+%     for FrameNum = 1:numBscans
+%         RawOCT = RawOCT_A(:,:,FrameNum);
+%         
+%         rescaled = reSampling_LUT(RawOCT, LUT_A);
+%         dc_sub = rescaled - (repmat(median(real(rescaled),2), [1,size(rescaled,2)]) ...
+%         +1j.*repmat(median(imag(rescaled),2), [1,size(rescaled,2)]));
+%         
+%         % no need to estimate, just apply
+%         dis_comp = compDisPhase(dc_sub, dispMaxOrder, dispCoeffs);
+%         
+%         han_win = dis_comp.*repmat(hann(size(dis_comp, 1)), [1 size(dis_comp,2)]);
+%     
+%         FFTData = fft(han_win);
+%         
+%         % depth ROI sets the size of this volume, being specific with it is
+%         % beneficial, some margin should be added to prevent clipping from
+%         % mcorr/tcorr
+%         OCT(:,:,FrameNum) = flipud(FFTData(depthROI(1):depthROI(2),:));
+%     end
 % end
 % 
-% return
-
-% % idk yet
-usfac = 1;
-numFrames = size(OCT, 3);
-global_axial_motion = zeros([numFrames 1]);
-OCT_mcorr = OCT;
-
-for I = 1:numFrames
-    %%% Every 'for' loop, reference frame will be the middle frame %%%
-    [output, ~] = dftregistration(fft2(20.*log10(abs(OCT(:, :, round(numFrames./2))))),...
-    fft2(20.*log10(abs(OCT(:, :, I)))), usfac);
-    %%% Assign and save the shifting value for axial (yShift) %%%
-    global_axial_motion(I) = round(output(3));
-    OCT_mcorr(:, :, I) = circshift(OCT(:, :, I), [output(3), 0]);
-end
-
+% % % Save .mat file %
+% % save(fullfile(loadloc,['OCT']), 'OCT', '-v7.3');
+% % 
+% % % Save .tiff stack %
+% % for i = 1:size(OCT,3)
+% %     img = imadjust(mat2gray(20.*log10(abs(OCT(:,:,i)))));
+% %     imwrite(img, 'OCT.tiff', 'WriteMode', 'append', 'Compression','none');
+% % end
+% % 
+% % return
+% 
+% % % idk yet
+% usfac = 1;
+% numFrames = size(OCT, 3);
+% global_axial_motion = zeros([numFrames 1]);
+% OCT_mcorr = OCT;
+% 
+% for I = 1:numFrames
+%     %%% Every 'for' loop, reference frame will be the middle frame %%%
+%     [output, ~] = dftregistration(fft2(20.*log10(abs(OCT(:, :, round(numFrames./2))))),...
+%     fft2(20.*log10(abs(OCT(:, :, I)))), usfac);
+%     %%% Assign and save the shifting value for axial (yShift) %%%
+%     global_axial_motion(I) = round(output(3));
+%     OCT_mcorr(:, :, I) = circshift(OCT(:, :, I), [output(3), 0]);
+% end
+% 
 numLines = size(OCT_mcorr, 2);
 global_axial_tilt = zeros([numLines 1]);
 OCT_tcorr = OCT_mcorr;

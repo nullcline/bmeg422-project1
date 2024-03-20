@@ -6,7 +6,7 @@ function [piqe_score, contrast_score, sharpness_score] = get_scores(fringe_data,
 
     piqe_score = piqe(image);
     
-    contrast_score = (max(image) - min(image)) / (max(image) + min(image));
+    contrast_score = (max(image(:)) - min(image(:))) / (max(image(:)) + min(image(:)));
     
     laplacianFilter = fspecial('laplacian');
     img_laplacian = imfilter(image, laplacianFilter, 'replicate');

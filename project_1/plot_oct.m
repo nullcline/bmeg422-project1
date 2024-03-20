@@ -7,8 +7,9 @@ function plot_oct(fringe_data, ROI, type, plot_title)
     Ref_FFTData = fft(fringe_data);
 
     if type == "FFT"
+        disp(size(fringe_data))
         Ref_FFTData = fft(fringe_data);
-        Ref_Img = 20*log10(abs(Ref_FFTData(ROI(1):ROI(2),:)));
+        Ref_Img = 20*log10(abs(Ref_FFTData));
         imagesc(Ref_Img); colormap("gray");
         xlabel("Position (µm)")
         ylabel("Depth (µm)")

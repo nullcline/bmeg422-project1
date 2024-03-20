@@ -1,0 +1,21 @@
+function saveGif(data, filename, delayTime)
+    for i = 1:size(data,3)
+        % Extract the ith frame
+        frame = squeeze(data(:,:,i));
+        im(frame);
+    %     % Convert the frame to uint8 if it isn't already
+    %     if ~isa(frame, 'uint8')
+    %         frame = im2uint8(frame);
+    %     end
+        
+        % Convert the frame to an indexed image
+        [ind, map] = gray2ind(frame, 256);
+        
+        % Write to the GIF File
+        if i == 1
+            imwrite(ind, map, filename, 'gif', 'LoopCount', Inf, 'DelayTime', delayTime);
+        else
+            imwrite(ind, map, filename, 'gif', 'WriteMode', 'append', 'DelayTime', delayTime);
+        end
+    end
+end
